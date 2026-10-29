@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 import java.awt.*;
 
 public class MainMenuScreen extends StackPane{
-    public MainMenuScreen(){
+    public MainMenuScreen(Runnable onPlay){
         Label title = new Label("DIVER");
         title.setStyle(
                 "-fx-font-size: 48px; -fx-text-fill: white;"
@@ -20,6 +20,8 @@ public class MainMenuScreen extends StackPane{
         Button recordsButton = createButton("РЕКОРДЫ");
         Button creditsButton = createButton("СОЗДАТЕЛИ");
         Button exitButton = createButton("ВЫХОД");
+
+        playButton.setOnAction(event -> onPlay.run());
 
         exitButton.setOnAction(event -> Platform.exit());
 

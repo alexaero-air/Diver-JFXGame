@@ -2,14 +2,23 @@ package ru.diver;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import ru.diver.screen.MainMenuScreen;
+import ru.diver.screen.GameScreen;
 import javafx.stage.Stage;
 
 public class DiverApplication extends Application{
+
+    private Scene scene;
+
     @Override
     public void start(Stage stage){
-        MainMenuScreen root = new MainMenuScreen();
-        Scene scene = new Scene(root, 1280, 720);
+
+
+        Scene scene = new Scene(new StackPane(), 1280, 720);
+
+        showMainMenu();
+
         stage.setTitle("Diver");
         stage.setScene(scene);
         stage.setMinWidth(800);
@@ -17,5 +26,15 @@ public class DiverApplication extends Application{
         stage.setResizable(true);
 
         stage.show();
+    }
+
+    private void showMainMenu(){
+        MainMenuScreen mainMenu = new MainMenuScreen(this::showGame);
+        scene.setRoot(mainMenu);
+    }
+
+    private void showGame(){
+        GameScreen gameScreen = new GameScreen(this::showMainMenu);
+        scene.setRoot(gameScreen);
     }
 }
