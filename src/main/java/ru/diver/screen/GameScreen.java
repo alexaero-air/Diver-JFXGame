@@ -5,26 +5,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
+import javafx.animation.AnimationTimer;
 
 import java.awt.*;
 
 public class GameScreen extends StackPane{
-    public GameScreen(Runnable onBack){
-        Label title = new Label("Игровой экран");
-        title.setStyle(
-                "-fx-font-size: 36px; -fx-text-fill: white;"
-        );
-
-        Button backButton = new Button("Назад в меню");
-        backButton.setPrefWidth(240);
-
-        backButton.setOnAction(event -> onBack.run());
-
-        VBox content = new VBox(20, title, backButton);
-        content.setAlignment(Pos.CENTER);
-
-        getChildren().add(content);
-        setStyle("-fx-background-color: #123d52;");
-    }
-
+    private static final long FRAME_DURATION_NANOS = 100_000_000L;
 }
