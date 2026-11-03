@@ -11,4 +11,16 @@ import java.awt.*;
 
 public class GameScreen extends StackPane{
     private static final long FRAME_DURATION_NANOS = 100_000_000L;
+
+    private final Canvas canvas = new Canvas();
+    private final Image [] idleFrame = new Image[15];
+    private final AnimationTimer animationTimer;
+
+    private int currentFrameIndex = 0;
+
+    public GameScreen(Runnable onBack) {
+        for (int i=0; i<idleFrame.length; i++){
+            String path = "" + "".formatted(i);
+        }
+    }
 }
