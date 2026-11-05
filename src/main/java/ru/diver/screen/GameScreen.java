@@ -3,12 +3,16 @@ package ru.diver.screen;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.control.Button;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.application.Platform;
+import javafx.scene.input.KeyCode;
+import ru.diver.game.Diver;
 
 import java.net.URL;
 
@@ -16,10 +20,12 @@ public class GameScreen extends StackPane{
     private static final long FRAME_DURATION_NANOS = 100_000_000L;
 
     private final Canvas canvas = new Canvas();
-    private final Image [] idleFrame = new Image[15];
+    private final Image [] idleFrame = new Image[20];
     private final AnimationTimer animationTimer;
 
     private int currentFrameIndex = 0;
+    private final Diver diver = new Diver();
+    private boolean spacePressed;
 
     public GameScreen(Runnable onBack) {
         for (int i=0; i<idleFrame.length; i++){
@@ -38,36 +44,86 @@ public class GameScreen extends StackPane{
 
         Button backButton = new Button("Назад в меню");
         backButton.setPrefWidth(180);
+        backButton.setFocusTraversable(false);
         backButton.setOnAction(event -> onBack.run());
 
         StackPane.setAlignment(backButton, Pos.TOP_LEFT);
         StackPane.setMargin(backButton, new Insets(16));
+
         getChildren().addAll(canvas, backButton);
+
+        configureInput();
 
         animationTimer = new AnimationTimer() {
             private long startTime;
+            private long previousTime;
             private boolean initialized;
 
             @Override
             public void handle (long now){
                 if (!initialized){
                     startTime = now;
+                    previousTime = now;
                     initialized = true;
                 }
+
+                double deltaTime =
+                        (now - previousTime) / 1_000_000_000.0;
+
+                previousTime = now;
+
+                deltaTime = Math.min(deltaTime, 0.05);
+                diver.update(deltaTime);
 
                 long framesPassed = (now - startTime) / FRAME_DURATION_NANOS;
                 currentFrameIndex = (int) (framesPassed % idleFrame.length);
 
                 draw();
             }
-
         };
+
+
+
         sceneProperty().addListener((observable, oldScene, newScene) -> {
-            if (newScene != null) animationTimer.start();
-            else animationTimer.stop();
+            if (newScene != null) {
+                animationTimer.start();
+                Platform.runLater(this::requestFocus);
+            } else {
+                animationTimer.stop();
+                spacePressed = false;
+            }
         });
 
     }
+
+    private void configureInput(){
+        setFocusTraversable(true);
+
+        addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.SPACE){
+                if (!spacePressed){
+                    spacePressed = true;
+                    diver.swim();
+                }
+
+                event.consume();
+            }
+        });
+
+        addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+            if (event.getCode() == KeyCode.SPACE){
+                spacePressed = false;
+                event.consume();
+            }
+        });
+
+        focusedProperty().addListener((observable, wasFocused, focused) -> {
+            if (!focused){
+                spacePressed = false;
+            }
+        });
+    }
+
     @Override
     protected void layoutChildren(){
         super.layoutChildren();
@@ -87,14 +143,17 @@ public class GameScreen extends StackPane{
 
         Image diverImage = idleFrame[currentFrameIndex];
         GraphicsContext graphics = canvas.getGraphicsContext2D();
+
         graphics.setFill(Color.web("#123d52"));
         graphics.fillRect(0,0, width, height);
 
-        double diverHeight = height * 0.3;
+        double scale = height / Diver.WORLD_HEIGHT;
+
+        double diverHeight = Diver.HEIGHT * scale;
         double diverWidth = diverHeight * diverImage.getWidth() / diverImage.getHeight();
 
         double diverX = width * 0.15;
-        double diverY = height * 0.85 - diverHeight;
+        double diverY = diver.getY() * scale;
 
         graphics.drawImage(
                 diverImage,
