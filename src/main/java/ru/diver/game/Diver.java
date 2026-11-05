@@ -36,4 +36,8 @@ public class Diver {
     public double getY() {
         return y;
     }
+
+    public boolean isOnGround(){
+        return y >= GROUND_Y - HEIGHT && velocityY >= 0;
+    }
 }

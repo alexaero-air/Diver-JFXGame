@@ -21,6 +21,8 @@ public class GameScreen extends StackPane{
 
     private final Canvas canvas = new Canvas();
     private final Image [] idleFrame = new Image[20];
+    private final Image [] swimmingFrame = new Image[8];
+    private Image [] currentFrame = idleFrame;
     private final AnimationTimer animationTimer;
 
     private int currentFrameIndex = 0;
@@ -40,7 +42,19 @@ public class GameScreen extends StackPane{
             idleFrame[i] = new Image(imageUrl.toExternalForm());
         }
 
-//        canvas.setManaged(false);
+        for (int i=0; i<swimmingFrame.length; i++){
+            String path = "/images/diver/swim/" +
+                    "__diver_swimming_%03d.png".formatted(i);
+            URL imageUrl = getClass().getResource(path);
+
+            if (imageUrl == null){
+                throw new IllegalStateException("Не найден ресурс: " + path);
+            }
+
+            swimmingFrame[i] = new Image(imageUrl.toExternalForm());
+        }
+
+        canvas.setManaged(false);
 
         Button backButton = new Button("Назад в меню");
         backButton.setPrefWidth(180);
@@ -75,8 +89,17 @@ public class GameScreen extends StackPane{
                 deltaTime = Math.min(deltaTime, 0.05);
                 diver.update(deltaTime);
 
+                Image [] nextFrame;
+                if (diver.isOnGround()) nextFrame = idleFrame;
+                else nextFrame = swimmingFrame;
+
+                if (currentFrame != nextFrame){
+                    currentFrame = nextFrame;
+                    startTime = now;
+                }
+
                 long framesPassed = (now - startTime) / FRAME_DURATION_NANOS;
-                currentFrameIndex = (int) (framesPassed % idleFrame.length);
+                currentFrameIndex = (int) (framesPassed % currentFrame.length);
 
                 draw();
             }
@@ -141,7 +164,7 @@ public class GameScreen extends StackPane{
 
         if (width <= 0 || height <= 0) return;
 
-        Image diverImage = idleFrame[currentFrameIndex];
+        Image diverImage = currentFrame[currentFrameIndex];
         GraphicsContext graphics = canvas.getGraphicsContext2D();
 
         graphics.setFill(Color.web("#123d52"));
