@@ -21,7 +21,7 @@ public class GameScreen extends StackPane{
     private final Canvas canvas = new Canvas();
 
     private final FarBackground farBackground = new FarBackground(
-            "/backgrounds/far_back.jpg"
+            "/backgrounds/far_background.png"
     );
 
     private final Image [] idleFrame = new Image[20];
