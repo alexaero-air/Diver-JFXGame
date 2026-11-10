@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 import ru.diver.game.Diver;
 import ru.diver.graphics.FarBackground;
+import ru.diver.graphics.Ground;
 
 import java.net.URL;
 
@@ -23,6 +24,12 @@ public class GameScreen extends StackPane{
     private final FarBackground farBackground = new FarBackground(
             "/backgrounds/far_background.png"
     );
+
+    private final Ground ground = new Ground(
+            "/backgrounds/ground.png"
+    );
+
+    private final double groundSurfaceY;
 
     private final Image [] idleFrame = new Image[20];
     private final Image [] swimmingFrame = new Image[8];
@@ -57,6 +64,12 @@ public class GameScreen extends StackPane{
 
             swimmingFrame[i] = new Image(imageUrl.toExternalForm());
         }
+
+        double feetRatio = findVisibleBottom(idleFrame[0])
+                / idleFrame[0].getHeight();
+        groundSurfaceY = diver.getGroundY()
+                - Diver.HEIGHT
+                + Diver.HEIGHT * feetRatio;
 
         canvas.setManaged(false);
 
@@ -151,6 +164,24 @@ public class GameScreen extends StackPane{
         });
     }
 
+    private int findVisibleBottom (Image image){
+        for (int y = (int) image.getHeight() - 1; y >= 0; y--){
+            for (int x = 0; x < (int) image.getWidth(); x++){
+                double opacity = image.getPixelReader()
+                        .getColor(x,y)
+                        .getOpacity();
+                if (opacity > 0.1){
+                    return y+1;
+                }
+            }
+        }
+        throw new IllegalStateException(
+                "Первый кадр не виден"
+        );
+    }
+
+
+
     @Override
     protected void layoutChildren(){
         super.layoutChildren();
@@ -174,6 +205,8 @@ public class GameScreen extends StackPane{
         farBackground.draw(graphics, width, height); // Отрисовка заднего фона
 
         double scale = height / Diver.WORLD_HEIGHT;
+
+        ground.draw(graphics, width, height, groundSurfaceY * scale); // Отрисовка земли
 
         double diverHeight = Diver.HEIGHT * scale;
         double diverWidth = diverHeight * diverImage.getWidth() / diverImage.getHeight();
