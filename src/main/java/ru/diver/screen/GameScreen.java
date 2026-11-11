@@ -218,7 +218,7 @@ public class GameScreen extends StackPane{
         double diverHeight = Diver.HEIGHT * scale;
         double diverWidth = diverHeight * diverImage.getWidth() / diverImage.getHeight();
 
-        double diverX = width * 0.2 - diverWidth / 2;
+        double diverX = width * 0.38 - diverWidth / 2;
         double diverY = diver.getY() * scale;
 
         graphics.drawImage(
