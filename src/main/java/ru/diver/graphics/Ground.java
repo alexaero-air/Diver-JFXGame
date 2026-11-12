@@ -61,4 +61,9 @@ public class Ground {
             );
         }
     }
+
+    public double getDistance() {
+        return scrollDistance;
+    }
+
 }

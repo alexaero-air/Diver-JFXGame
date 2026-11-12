@@ -14,6 +14,10 @@ import javafx.scene.input.KeyCode;
 import ru.diver.game.Diver;
 import ru.diver.graphics.FarBackground;
 import ru.diver.graphics.Ground;
+import ru.diver.game.ObstacleManager;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 import java.net.URL;
 
@@ -38,6 +42,8 @@ public class GameScreen extends StackPane{
 
     private int currentFrameIndex = 0;
     private final Diver diver = new Diver();
+    private final ObstacleManager obstacleManager;
+    private boolean gameOver;
     private boolean spacePressed;
 
     public GameScreen(Runnable onBack) {
@@ -70,6 +76,8 @@ public class GameScreen extends StackPane{
         groundSurfaceY = diver.getGroundY()
                 - Diver.HEIGHT
                 + Diver.HEIGHT * feetRatio;
+
+        obstacleManager = new ObstacleManager(groundSurfaceY);
 
         canvas.setManaged(false);
 
@@ -108,6 +116,12 @@ public class GameScreen extends StackPane{
                 ground.update(deltaTime);
                 diver.update(deltaTime);
 
+                obstacleManager.update(
+                        deltaTime,
+                        canvas.getWidth(),
+                        canvas.getHeight()
+                );
+
                 Image [] nextFrame;
                 if (diver.isOnGround()) nextFrame = idleFrame;
                 else nextFrame = swimmingFrame;
@@ -119,6 +133,19 @@ public class GameScreen extends StackPane{
 
                 long framesPassed = (now - startTime) / FRAME_DURATION_NANOS;
                 currentFrameIndex = (int) (framesPassed % currentFrame.length);
+
+                double scale = canvas.getHeight() / Diver.WORLD_HEIGHT;
+
+                if (scale > 0){
+                    double heroCenterX = canvas.getWidth() * 0.38 / scale;
+
+                    if (obstacleManager.hasCollision(
+                            diver.getBounds(heroCenterX)
+                    )) {
+                        gameOver = true;
+                        stop();
+                    }
+                }
 
                 draw();
             }
@@ -142,6 +169,9 @@ public class GameScreen extends StackPane{
         setFocusTraversable(true);
 
         addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (gameOver){
+                return;
+            }
             if (event.getCode() == KeyCode.SPACE){
                 if (!spacePressed){
                     spacePressed = true;
@@ -215,6 +245,11 @@ public class GameScreen extends StackPane{
                 groundSurfaceY * scale,
                 scale); // Отрисовка земли
 
+        obstacleManager.draw(
+                graphics,
+                scale
+        );
+
         double diverHeight = Diver.HEIGHT * scale;
         double diverWidth = diverHeight * diverImage.getWidth() / diverImage.getHeight();
 
@@ -228,5 +263,36 @@ public class GameScreen extends StackPane{
                 diverWidth,
                 diverHeight
         );
+
+        graphics.save();
+        graphics.setFill(Color.WHITE);
+        graphics.setFont(Font.font(28));
+        graphics.setTextAlign(TextAlignment.RIGHT);
+
+        graphics.fillText(
+                "Дистанция: " + (int) (ground.getDistance() / 100.0),
+                width - 24,
+                40
+        );
+
+        graphics.restore();
+
+        if (gameOver) {
+            graphics.save();
+
+            graphics.setFill(Color.color(0,0,0, 0.55));
+            graphics.fillRect(0,0, width, height);
+
+            graphics.setFill(Color.WHITE);
+            graphics.setFont(Font.font(36));
+            graphics.setTextAlign(TextAlignment.CENTER);
+
+            graphics.fillText(
+                    "GAME OVER",
+                    width /2,
+                    height /2
+            );
+            graphics.restore();
+        }
     }
 }
